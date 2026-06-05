@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Transferência Brasil ↔ Gabão</title>
+<style>
+body{
+    font-family: Arial, sans-serif;
+    background:#f4f6f8;
+    margin:0;
+    padding:20px;
+}
+.container{
+    max-width:700px;
+    margin:auto;
+    background:white;
+    padding:25px;
+    border-radius:12px;
+    box-shadow:0 2px 10px rgba(0,0,0,.1);
+}
+h1{
+    text-align:center;
+}
+label{
+    display:block;
+    margin-top:15px;
+    font-weight:bold;
+}
+select,input{
+    width:100%;
+    padding:10px;
+    margin-top:5px;
+    box-sizing:border-box;
+}
+.resultado{
+    margin-top:25px;
+    padding:15px;
+    background:#f8f8f8;
+    border-radius:8px;
+}
+.linha{
+    margin:8px 0;
+}
+.total{
+    font-size:1.2em;
+    font-weight:bold;
+}
+button{
+    width:100%;
+    padding:14px;
+    margin-top:20px;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+    font-size:16px;
+}
+.whatsapp{
+    background:#25D366;
+    color:white;
+}
+</style>
+</head>
+<body>
+<div class="container">
+    <h1>Transferência Brasil ↔ Gabão</h1>
+
+    <label>Tipo de conversão</label>
+    <select id="tipo">
+        <option value="brl_xaf">Real → Franco CFA</option>
+        <option value="xaf_brl">Franco CFA → Real</option>
+    </select>
+
+    <label>Valor</label>
+    <input type="number" id="valor" min="0" step="0.01" placeholder="Digite o valor">
+
+    <div class="resultado">
+        <div class="linha"><strong>Cotação:</strong> <span id="cotacao"></span></div>
+        <div class="linha"><strong>Valor convertido:</strong> <span id="bruto"></span></div>
+        <div class="linha"><strong>Taxa (8%):</strong> <span id="taxa"></span></div>
+        <div class="linha total"><strong>Valor final:</strong> <span id="liquido"></span></div>
+    </div>
+
+    <button class="whatsapp" onclick="enviarWhatsapp()">Enviar pelo WhatsApp</button>
+
+    <p style="margin-top:20px;text-align:center;">
+    </p>
+</div>
+
+<script>
+const TAXA = 0.08;
+const COTACAO_BRL_XAF = 101;
+const COTACAO_XAF_BRL = 115;
+
+function formatBRL(v){
+    return new Intl.NumberFormat('pt-BR',{
+        style:'currency',
+        currency:'BRL'
+    }).format(v);
+}
+
+function formatXAF(v){
+    return new Intl.NumberFormat('fr-FR').format(v) + ' XAF';
+}
+
+function calcular(){
+    const tipo = document.getElementById('tipo').value;
+    const valor = parseFloat(document.getElementById('valor').value) || 0;
+
+    let bruto = 0;
+    let taxa = 0;
+    let liquido = 0;
+
+    if(tipo === 'brl_xaf'){
+        bruto = valor * COTACAO_BRL_XAF;
+        taxa = bruto * TAXA;
+        liquido = bruto - taxa;
+
+        document.getElementById('cotacao').textContent =
+            '1 BRL = 101 XAF';
+
+        document.getElementById('bruto').textContent =
+            formatXAF(bruto);
+
+        document.getElementById('taxa').textContent =
+            formatXAF(taxa);
+
+        document.getElementById('liquido').textContent =
+            formatXAF(liquido);
+
+    }else{
+
+        bruto = valor / COTACAO_XAF_BRL;
+        taxa = bruto * TAXA;
+        liquido = bruto - taxa;
+
+        document.getElementById('cotacao').textContent =
+            '115 XAF = 1 BRL';
+
+        document.getElementById('bruto').textContent =
+            formatBRL(bruto);
+
+        document.getElementById('taxa').textContent =
+            formatBRL(taxa);
+
+        document.getElementById('liquido').textContent =
+            formatBRL(liquido);
+    }
+}
+
+function enviarWhatsapp(){
+    const tipo = document.getElementById('tipo').value;
+    const valor = parseFloat(document.getElementById('valor').value) || 0;
+
+    if(valor <= 0){
+        alert('Digite um valor válido.');
+        return;
+    }
+
+    let mensagem = "";
+
+    if(tipo === "brl_xaf"){
+        const bruto = valor * COTACAO_BRL_XAF;
+        const taxa = bruto * TAXA;
+        const liquido = bruto - taxa;
+
+        mensagem =
+`Bonjour, je souhaite effectuer un transfert.
+
+Type : Réal brésilien (BRL) → Franc CFA
+Montant envoyé: ${formatBRL(valor)}
+Montant net reçu: ${formatXAF(liquido)}`;
+
+    }else{
+
+        const bruto = valor / COTACAO_XAF_BRL;
+        const taxa = bruto * TAXA;
+        const liquido = bruto - taxa;
+
+        mensagem =
+`Bonjour, je souhaite effectuer un transfert.
+
+Type : Franc CFA → Réal brésilien (BRL)
+Montant envoyé: ${formatXAF(valor)}
+Montant net reçu: ${formatBRL(liquido)}`;
+    }
+
+    const numero = "5521967861439";
+    const url =
+        `https://wa.me/${numero}?text=${encodeURIComponent(mensagem)}`;
+
+    window.open(url, "_blank");
+}
+
+document.getElementById('tipo').addEventListener('change', calcular);
+document.getElementById('valor').addEventListener('input', calcular);
+
+calcular();
+</script>
+</body>
+</html>
